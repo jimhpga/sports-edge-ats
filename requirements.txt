@@ -1,0 +1,6 @@
+﻿pandas
+numpy
+scikit-learn
+matplotlib
+streamlit
+jinja2
