@@ -1,0 +1,18 @@
+﻿name: SportsEdge Pinger
+
+on:
+  schedule:
+    - cron: "*/5 * * * 0,4,6"  # every 5 min Sun/Thu/Sat
+    - cron: "0 * * * 1-3,5"    # hourly Mon/Tue/Wed/Fri
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hit update endpoint
+        run: |
+          curl -sS -f "$BASE_URL/api/sportsedge/update$BYPASS" | head -c 500
+        env:
+          BASE_URL: ${{ secrets.SPORTSEDGE_BASE_URL }}
+          BYPASS:   ${{ secrets.SPORTSEDGE_BYPASS_QUERY }}   # "" or like "?x-vercel-protection-bypass=TOKEN"

@@ -1,0 +1,16 @@
+﻿{
+    "version":  2,
+    "cleanUrls":  true,
+    "trailingSlash":  false,
+    "headers":  [
+                    {
+                        "source":  "/(.*)",
+                        "headers":  [
+                                        {
+                                            "key":  "Cache-Control",
+                                            "value":  "no-store"
+                                        }
+                                    ]
+                    }
+                ]
+}

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sports Edge — Live</title>
+  <style>
+    :root{--bg:#0f1b2b;--panel:#15253c;--text:#e6eef9;--muted:#98a7bd;--g:#0f5132;--gt:#d1f2e0;--y:#664d03;--yt:#fff1c2;--r:#842029;--rt:#ffd7d7}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);margin:24px}
+    .wrap{max-width:980px;margin:auto}
+    .card{background:var(--panel);border-radius:12px;padding:16px;margin-top:16px}
+    .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;margin-left:8px;vertical-align:middle}
+    .green{background:var(--g);color:var(--gt)} .yellow{background:var(--y);color:var(--yt)} .red{background:var(--r);color:var(--rt)}
+    ul{padding-left:18px;margin:8px 0 0} li{margin:6px 0;line-height:1.35}
+    #summary{background:#12263f;padding:10px 16px;margin:16px 0;border-radius:10px}
+    h1 small{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Sports Edge — Live <small id="stamp">loading…</small></h1>
+    <div id="summary" hidden></div>
+    <div class="card"><h2>NFL</h2><ul id="nfl"></ul></div>
+    <div class="card"><h2>UFC</h2><ul id="ufc"></ul></div>
+  </div>
+  <script>
+    const U='/api/sportsedge/update';
+    const b=(t,c)=>{const s=document.createElement('span');s.className='badge '+c;s.textContent=t;return s};
+    const tone=(e,g=1.5,y=1.0)=>typeof e!=='number'?'red':e>=g?'green':e>=y?'yellow':'red';
+    async function summary(d){
+      const g=(d?.nfl)||[];let T=0,G=0,Y=0,R=0,S=0;
+      for(const x of g){const e=x?.picks?.ats?.edge_pts; if(typeof e==='number') S+=e; if(typeof e==='number'){e>=1.2?G++:e>=0.7?Y++:R++} else R++; T++;}
+      const avg=T? (S/T).toFixed(2):'0.00'; const box=document.getElementById('summary'); box.hidden=false;
+      box.innerHTML=`<b>Today's Snapshot:</b><br>Games: ${T} | Green: ${G} | Yellow: ${Y} | Red: ${R}<br>Avg Edge (ATS): ${avg}`;
+    }
+    async function load(){
+      try{
+        const r=await fetch(U,{cache:'no-store'}); const d=await r.json(); if(d?.error) throw new Error(d.error);
+        document.getElementById('stamp').textContent='· updated '+new Date(d.updatedAt||Date.now()).toLocaleString();
+        await summary(d);
+        const nfl=document.getElementById('nfl'); nfl.innerHTML='';
+        (d.nfl||[]).slice(0,50).forEach(g=>{
+          const li=document.createElement('li'); const t=g.commence_time?new Date(g.commence_time).toLocaleString():'';
+          li.append(document.createTextNode(`${t? t+' — ':''}${g.away_team||'Away'} @ ${g.home_team||'Home'} `));
+          const p=g.picks||{};
+          if(p.ml?.pick) li.append(' ', b(`ML: ${p.ml.pick}${p.ml.value!=null?` (${p.ml.value})`:''}`,'green'));
+          if(p.ats?.pick){const e=p.ats.edge_pts; li.append(' ', b(`ATS: ${p.ats.pick}${e!=null?` (${e})`:''}`, tone(e,1.2,0.7))); }
+          if(p.ou?.pick){ const e=p.ou.edge_pts; li.append(' ', b(`O/U: ${p.ou.pick}${e!=null?` (${e})`:''}`, tone(e,1.5,1.0))); }
+          nfl.appendChild(li);
+        });
+        const u=document.getElementById('ufc'); u.innerHTML='';
+        (d.ufc||[]).slice(0,50).forEach(f=>{
+          const li=document.createElement('li'); const a=f.away_team||f.fighter_b||'Fighter B'; const h=f.home_team||f.fighter_a||'Fighter A';
+          li.append(document.createTextNode(`${a} vs ${h} `)); const p=f.picks||{}; if(p.ml?.pick) li.append(' ', b(`ML: ${p.ml.pick}${p.ml.value!=null?` (${p.ml.value})`:''}`,'green'));
+          u.appendChild(li);
+        });
+      }catch(e){ document.getElementById('stamp').textContent='· error: '+e.message; }
+    }
+    load(); setInterval(load, 90000);
+  </script>
+</body>
+</html>

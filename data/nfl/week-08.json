@@ -1,0 +1,61 @@
+﻿{
+    "league":  "NFL",
+    "season":  2024,
+    "week":  8,
+    "picks":  [
+                  {
+                      "league":  "NFL",
+                      "game":  "Jets @ Bills | ATS -3.5 -110 | color GREEN",
+                      "away":  "Jets",
+                      "home":  "Bills",
+                      "type":  "ATS",
+                      "spread":  -3.5,
+                      "total":  null,
+                      "price":  -110,
+                      "color":  "GREEN",
+                      "units":  100,
+                      "edgeProb":  null,
+                      "result":  "P"
+                  },
+                  {
+                      "league":  "NFL",
+                      "game":  "Dolphins @ Chiefs | ML -125 | color YELLOW",
+                      "away":  "Dolphins",
+                      "home":  "Chiefs",
+                      "type":  "ML",
+                      "spread":  null,
+                      "total":  null,
+                      "price":  -125,
+                      "color":  "GREEN",
+                      "units":  100,
+                      "edgeProb":  null,
+                      "result":  "P"
+                  },
+                  {
+                      "league":  "NFL",
+                      "game":  "Ravens @ Bengals | OU 41.5 -108 | color GREEN",
+                      "away":  "Ravens",
+                      "home":  "Bengals",
+                      "type":  "OU",
+                      "spread":  null,
+                      "total":  41.5,
+                      "price":  -108,
+                      "color":  "GREEN",
+                      "units":  100,
+                      "edgeProb":  null,
+                      "result":  "P"
+                  }
+              ],
+    "results":  [
+
+                ],
+    "bankroll":  0,
+    "weekRoi":  0,
+    "seasonRoi":  0,
+    "sparkline":  [
+
+                  ],
+    "homeRows":  [
+
+                 ]
+}

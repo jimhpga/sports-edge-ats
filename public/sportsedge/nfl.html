@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>NFL — Sports Edge</title>
+<style>
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#071521;color:#e6eef9;margin:24px}
+  .wrap{max-width:1100px;margin:auto}
+  h1{margin:0 0 10px} small{color:#8aaccc}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 18px}
+  input,select{background:#0f2236;color:#e6eef9;border:1px solid #25415f;border-radius:8px;padding:8px 10px}
+  .card{background:#10253b;border-radius:12px;margin-top:8px}
+  table{border-collapse:collapse;width:100%}
+  th,td{padding:10px 12px;border-bottom:1px solid #203a54}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;margin-left:8px}
+  .green{background:#0f5132;color:#d1f2e0}.yellow{background:#664d03;color:#fff1c2}.red{background:#842029;color:#ffd7d7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div><a href="/">&larr; Home</a> · <a href="/sportsedge/">Live Hub</a></div>
+  <h1>NFL — Live <small id="stamp">loading…</small></h1>
+  <div class="toolbar">
+    <input id="q" placeholder="Filter by team…" />
+    <select id="sort">
+      <option value="time">Sort by time</option>
+      <option value="ats">Sort by ATS edge</option>
+      <option value="ou">Sort by O/U edge</option>
+    </select>
+  </div>
+  <div class="card">
+    <table id="tbl">
+      <thead><tr>
+        <th>Time</th><th>Matchup</th><th>ML</th><th>ATS</th><th>O/U</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+<script>
+function b(txt, cls){ var s=document.createElement('span'); s.className='badge '+cls; s.textContent=txt; return s; }
+function cls(v,g,y){ if(typeof v!=='number')return'red'; if(v>=(g||1.5))return'green'; if(v>=(y||1.0))return'yellow'; return'red'; }
+let RAW=[];
+async function load(){
+  const r=await fetch('/api/sportsedge/update',{cache:'no-store'});
+  const d=await r.json();
+  if(d.error) throw new Error(d.error);
+  document.getElementById('stamp').textContent='· updated '+new Date(d.updatedAt||Date.now()).toLocaleString();
+  RAW = (d.nfl||[]);
+  render();
+}
+function render(){
+  const q=(document.getElementById('q').value||'').toLowerCase();
+  const sort=document.getElementById('sort').value;
+  let rows = RAW.slice();
+
+  // filter
+  if(q){
+    rows = rows.filter(g=>{
+      const a=(g.away_team||'').toLowerCase();
+      const h=(g.home_team||'').toLowerCase();
+      return a.includes(q)||h.includes(q);
+    });
+  }
+  // sort
+  rows.sort((A,B)=>{
+    if(sort==='ats'){
+      const a=(A.picks?.ats?.edge_pts ?? -999), b=(B.picks?.ats?.edge_pts ?? -999);
+      return b-a;
+    }else if(sort==='ou'){
+      const a=(A.picks?.ou?.edge_pts ?? -999), b=(B.picks?.ou?.edge_pts ?? -999);
+      return b-a;
+    }else{
+      return (new Date(A.commence_time||0)) - (new Date(B.commence_time||0));
+    }
+  });
+
+  const tb=document.querySelector('#tbl tbody');
+  tb.innerHTML='';
+  rows.forEach(g=>{
+    const tr=document.createElement('tr');
+    const t = g.commence_time? new Date(g.commence_time).toLocaleString() : '';
+    const p = g.picks||{};
+    const tdT=document.createElement('td'); tdT.textContent=t; tr.appendChild(tdT);
+
+    const tdM=document.createElement('td'); tdM.textContent=(g.away_team||'Away')+' @ '+(g.home_team||'Home'); tr.appendChild(tdM);
+
+    const tdML=document.createElement('td');
+    if(p.ml?.pick){ tdML.append(b('ML: '+p.ml.pick+(p.ml.value!=null?' ('+p.ml.value+')':''),'green')); }
+    tr.appendChild(tdML);
+
+    const tdATS=document.createElement('td');
+    if(p.ats?.pick){
+      const e=(typeof p.ats.edge_pts==='number')?p.ats.edge_pts:null;
+      tdATS.append(b('ATS: '+p.ats.pick+(e!=null?' ('+e+')':''), cls(e,1.2,0.7)));
+    }
+    tr.appendChild(tdATS);
+
+    const tdOU=document.createElement('td');
+    if(p.ou?.pick){
+      const e=(typeof p.ou.edge_pts==='number')?p.ou.edge_pts:null;
+      tdOU.append(b('O/U: '+p.ou.pick+(e!=null?' ('+e+')':''), cls(e,1.5,1.0)));
+    }
+    tr.appendChild(tdOU);
+
+    tb.appendChild(tr);
+  });
+}
+document.getElementById('q').addEventListener('input', render);
+document.getElementById('sort').addEventListener('change', render);
+load(); setInterval(load, 90000);
+</script>
+</body></html>

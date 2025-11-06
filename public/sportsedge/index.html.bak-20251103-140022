@@ -1,0 +1,121 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sports Edge — Live</title>
+  <style>
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#0f1b2b;color:#e6eef9;margin:24px}
+    .wrap{max-width:980px;margin:auto}
+    h1{margin:0 0 8px}
+    small{color:#98a7bd}
+    .card{background:#15253c;border-radius:12px;padding:16px;margin-top:16px}
+    .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;margin-left:8px}
+    .green{background:#0f5132;color:#d1f2e0}
+    .yellow{background:#664d03;color:#fff1c2}
+    .red{background:#842029;color:#ffd7d7}
+    ul{padding-left:18px;margin:8px 0 0 0}
+    li{margin:6px 0}
+    .disclaimer{background:#071226;padding:10px 14px;border-radius:8px;color:#cbe7f7;margin-bottom:12px;border:1px solid rgba(200,220,240,0.04)}
+    .top-actions{float:right}
+    .logout{background:#2b3b47;color:#dfeff7;padding:6px 10px;border-radius:6px;border:none;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="disclaimer">
+      <strong>Notice:</strong> This site is for informational purposes only. Do not use this content to place wagers or gamble. Use responsibly.
+      <span class="top-actions"><button class="logout" id="logoutBtn">Sign out</button></span>
+    </div>
+
+    <h1>Sports Edge — Live <small id="stamp">loading…</small></h1>
+    <div class="card"><h2>NFL</h2><ul id="nfl"></ul></div>
+    <div class="card"><h2>UFC</h2><ul id="ufc"></ul></div>
+  </div>
+
+  <script>
+    (async function() {
+      try {
+        const res = await fetch('/api/auth/check', { cache: 'no-store' });
+        if (res.status !== 200) {
+          window.location = '/login.html';
+          return;
+        }
+      } catch (e) {
+        window.location = '/login.html';
+        return;
+      }
+      load();
+      setInterval(load, 90000);
+
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        await fetch('/api/auth/logout', { method: 'POST' }).catch(()=>{});
+        window.location = '/login.html';
+      });
+    })();
+
+    function makeBadge(txt, cls){
+      var span = document.createElement('span');
+      span.className = 'badge ' + cls;
+      span.textContent = txt;
+      return span;
+    }
+    function clsByEdge(edge, g, y){
+      if (typeof edge !== 'number') return 'red';
+      if (edge >= (g||1.5)) return 'green';
+      if (edge >= (y||1.0)) return 'yellow';
+      return 'red';
+    }
+    async function load(){
+      try{
+        var r = await fetch('/api/sportsedge/update', { cache: 'no-store' });
+        var d = await r.json();
+        if (d && d.error) throw new Error(d.error);
+
+        var stamp = document.getElementById('stamp');
+        if (stamp) stamp.textContent = '· updated ' + new Date(d.updatedAt || Date.now()).toLocaleString();
+
+        var nfl = document.getElementById('nfl'); if (nfl) nfl.innerHTML = '';
+        (d && d.nfl ? d.nfl : []).slice(0, 20).forEach(function(g){
+          var li = document.createElement('li');
+          var t  = g.commence_time ? new Date(g.commence_time).toLocaleString() : '';
+          li.textContent = (t ? (t + ' — ') : '') + (g.away_team || 'Away') + ' @ ' + (g.home_team || 'Home') + ' ';
+          var p = g.picks || {};
+          if (p.ml && p.ml.pick){
+            li.appendChild(document.createTextNode(' '));
+            li.appendChild(makeBadge('ML: ' + p.ml.pick + (p.ml.value!=null ? ' ('+p.ml.value+')' : ''), 'green'));
+          }
+          if (p.ats && p.ats.pick){
+            var aEdge = typeof p.ats.edge_pts === 'number' ? p.ats.edge_pts : null;
+            li.appendChild(document.createTextNode(' '));
+            li.appendChild(makeBadge('ATS: ' + p.ats.pick + (aEdge!=null ? ' ('+aEdge+')' : ''), clsByEdge(aEdge, 1.2, 0.7)));
+          }
+          if (p.ou && p.ou.pick){
+            var oEdge = typeof p.ou.edge_pts === 'number' ? p.ou.edge_pts : null;
+            li.appendChild(document.createTextNode(' '));
+            li.appendChild(makeBadge('O/U: ' + p.ou.pick + (oEdge!=null ? ' ('+oEdge+')' : ''), clsByEdge(oEdge, 1.5, 1.0)));
+          }
+          if (nfl) nfl.appendChild(li);
+        });
+
+        var ufc = document.getElementById('ufc'); if (ufc) ufc.innerHTML = '';
+        (d && d.ufc ? d.ufc : []).slice(0, 12).forEach(function(f){
+          var li = document.createElement('li');
+          var a = f.away_team || f.fighter_b || 'Fighter B';
+          var h = f.home_team || f.fighter_a || 'Fighter A';
+          li.textContent = a + ' vs ' + h + ' ';
+          var p = f.picks || {};
+          if (p.ml && p.ml.pick){
+            li.appendChild(document.createTextNode(' '));
+            li.appendChild(makeBadge('ML: ' + p.ml.pick + (p.ml.value!=null ? ' ('+p.ml.value+')' : ''), 'green'));
+          }
+          if (ufc) ufc.appendChild(li);
+        });
+      }catch(e){
+        var stampEl = document.getElementById('stamp');
+        if (stampEl) stampEl.textContent = '· error: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>

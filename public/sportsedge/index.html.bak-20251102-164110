@@ -1,0 +1,33 @@
+﻿<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sports Edge — Live</title>
+<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#0f1b2b;color:#e6eef9;margin:24px}
+.wrap{max-width:980px;margin:auto}h1{margin:0 0 8px}small{color:#98a7bd}
+.card{background:#15253c;border-radius:12px;padding:16px;margin-top:16px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;margin-left:8px}
+.green{background:#0f5132;color:#d1f2e0}.yellow{background:#664d03;color:#fff1c2}.red{background:#842029;color:#ffd7d7}
+</style>
+<div class="wrap">
+  <h1>Sports Edge — Live <small id="stamp">loading…</small></h1>
+  <div class="card"><h2>NFL</h2><ul id="nfl"></ul></div>
+  <div class="card"><h2>UFC</h2><ul id="ufc"></ul></div>
+</div>
+<script>
+async function load(){
+  try{
+    const r = await fetch('/api/sportsedge/update',{cache:'no-store'});
+    const d = await r.json();
+    if(d.error) throw new Error(d.error);
+    document.getElementById('stamp').textContent = '· updated ' + new Date(d.updatedAt).toLocaleString();
+    const nfl = document.getElementById('nfl'); nfl.innerHTML='';
+    (d.nfl||[]).slice(0,20).forEach(g=>{
+      const t = g.commence_time? new Date(g.commence_time).toLocaleString() : '';
+      const li = document.createElement('li'); li.textContent = `${t} — ${g.away_team} @ ${g.home_team}`; nfl.appendChild(li);
+    });
+    const ufc = document.getElementById('ufc'); ufc.innerHTML='';
+    (d.ufc||[]).slice(0,12).forEach(f=>{
+      const li = document.createElement('li'); li.textContent = `${f.away_team||f.fighter_b||'Fighter B'} vs ${f.home_team||f.fighter_a||'Fighter A'}`; ufc.appendChild(li);
+    });
+  }catch(e){ document.getElementById('stamp').textContent = '· error: '+e.message; }
+}
+load(); setInterval(load, 90000);
+</script>

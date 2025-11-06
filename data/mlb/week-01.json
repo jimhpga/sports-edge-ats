@@ -1,0 +1,61 @@
+﻿{
+    "league":  "MLB",
+    "season":  2024,
+    "week":  1,
+    "picks":  [
+                  {
+                      "league":  "MLB",
+                      "game":  "Dodgers @ Rangers | ML -120 | side AWAY | color GREEN",
+                      "away":  "Dodgers",
+                      "home":  "Rangers",
+                      "type":  "ML",
+                      "side":  null,
+                      "spread":  null,
+                      "total":  null,
+                      "price":  -120,
+                      "color":  "GREEN",
+                      "units":  100,
+                      "result":  "P"
+                  },
+                  {
+                      "league":  "MLB",
+                      "game":  "Braves  @ Phillies| OU 8.5 -105 | side OVER | color YELLOW",
+                      "away":  "Braves",
+                      "home":  "Phillies",
+                      "type":  "OU",
+                      "side":  null,
+                      "spread":  null,
+                      "total":  8.5,
+                      "price":  -105,
+                      "color":  "GREEN",
+                      "units":  100,
+                      "result":  "P"
+                  },
+                  {
+                      "league":  "MLB",
+                      "game":  "Yankees @ Astros  | ATS -1.5 +140 | side AWAY | color RED",
+                      "away":  "Yankees",
+                      "home":  "Astros",
+                      "type":  "ATS",
+                      "side":  null,
+                      "spread":  -1.5,
+                      "total":  null,
+                      "price":  140,
+                      "color":  "GREEN",
+                      "units":  100,
+                      "result":  "P"
+                  }
+              ],
+    "results":  [
+
+                ],
+    "bankroll":  0,
+    "weekRoi":  0,
+    "seasonRoi":  0,
+    "sparkline":  [
+
+                  ],
+    "homeRows":  [
+
+                 ]
+}

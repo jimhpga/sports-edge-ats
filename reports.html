@@ -1,0 +1,216 @@
+﻿<!doctype html><html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sports Edge — Reports</title>
+<style>
+ body{margin:0;background:#0b0b0e;color:#e5e7eb;font:14px/1.55 system-ui,Segoe UI,Roboto}
+ header{position:sticky;top:0;background:#0b0b0e;border-bottom:1px solid #222;padding:12px 16px;display:flex;gap:10px;align-items:center;z-index:10}
+ h1{font-size:18px;margin:0;font-weight:700}
+ .btn{background:#1f2937;color:#e5e7eb;border:1px solid #374151;border-radius:8px;padding:6px 10px;cursor:pointer}
+ .btn.primary{background:#3b82f6;border-color:#2563eb}
+ .grid{display:grid;gap:12px;padding:16px}
+ .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+ .card{background:#0f1115;border:1px solid #1f2430;border-radius:12px;padding:12px}
+ .card h3{margin:0 0 6px 0;font-size:15px}
+ table{width:100%;border-collapse:collapse} th,td{padding:6px 8px;border-bottom:1px solid #1f2430;text-align:left;white-space:nowrap}
+ th{color:#93a3b8;font-weight:600;font-size:12px;text-transform:uppercase}
+ .muted{color:#9aa7bd}
+ .ok{color:#34d399}.bad{color:#f87171}.warn{color:#fbbf24}
+ textarea,input[type="text"]{width:100%;background:#0f1115;color:#cfd7e6;border:1px solid #1f2430;border-radius:10px;padding:10px}
+ .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+ .chip{display:inline-block;padding:4px 8px;border-radius:10px;border:1px solid #30363d;margin-right:6px}
+ @media print { header{position:static;background:#fff;color:#000;border:0} body{background:#fff;color:#000} .card{border-color:#ddd} .btn{display:none} a{color:#000} }
+</style>
+</head><body>
+<header>
+  <h1>Sports Edge — Reports</h1>
+  <select id="lg" class="btn">
+    <option value="NFL" selected>NFL</option>
+    <option value="NBA">NBA</option>
+    <option value="UFC">UFC</option>
+    <option value="MLB">MLB</option>
+  </select>
+  <button id="reload" class="btn">Reload</button>
+  <button id="print"  class="btn">Print / PDF</button>
+  <button id="csv"    class="btn">Export CSV</button>
+  <a href="/weekend" class="btn">Weekend Report</a>
+  <a href="/" class="btn">Home</a>
+  <span id="hdr" class="muted" style="margin-left:auto"></span>
+</header>
+
+<div class="grid">
+  <div class="cards">
+    <div class="card">
+      <h3>Season Totals</h3>
+      <table><thead><tr><th>Scope</th><th>W-L-P</th><th>Units</th><th>ROI</th></tr></thead><tbody id="tSeason"></tbody></table>
+    </div>
+    <div class="card">
+      <h3>By Type</h3>
+      <table><thead><tr><th>Type</th><th>W-L-P</th><th>Units</th><th>ROI</th></tr></thead><tbody id="tType"></tbody></table>
+    </div>
+    <div class="card">
+      <h3>By Color</h3>
+      <table><thead><tr><th>Band</th><th>W-L-P</th><th>Units</th><th>ROI</th></tr></thead><tbody id="tColor"></tbody></table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Weeks Loaded</h3>
+    <div id="weeks" class="row"></div>
+  </div>
+
+  <div class="card">
+    <h3>Quick Paste → week-XX.json (exact grading supported)</h3>
+    <p class="muted">Add <b>side</b> for ATS/ML and <b>OVER/UNDER</b> for OU (exact grading). Examples:<br>
+      <code>Jets @ Bills | ATS -3.5 -110 | side AWAY | color GREEN</code><br>
+      <code>Lions @ Bears | ML -145 | side HOME | color GREEN</code><br>
+      <code>Dodgers @ Rangers | OU 8.5 -105 | side OVER | color YELLOW</code>
+    </p>
+    <textarea id="paste" placeholder="Paste lines here…"></textarea>
+    <div class="row" style="margin-top:8px">
+      <label class="muted">Week/Series: </label>
+      <input id="wk" type="number" min="1" max="30" class="btn" style="width:100px" value="1"/>
+      <button id="mk" class="btn primary">Create JSON</button>
+      <a id="dl" class="btn" download style="display:none">Download</a>
+      <span id="pmsg" class="muted"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Result Grader (exact for ATS/ML with side; OU exact with OVER/UNDER)</h3>
+    <p class="muted">Finals (one per line). Examples:<br>
+      <code>Jets 20 Bills 17</code> &nbsp;&nbsp;|&nbsp;&nbsp; <code>Dodgers 4 Rangers 2</code>
+    </p>
+    <textarea id="grade" placeholder="One game per line…"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button id="applyGrade" class="btn">Apply</button>
+      <span id="gmsg" class="muted"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const ROOT={NFL:'/data/nfl',NBA:'/data/nba',UFC:'/data/ufc',MLB:'/data/mlb'};
+const UNITS=100;
+
+function fmt(n){return (Math.round(n*100)/100).toFixed(2)}
+function pct(u,den){return den?((u/den)*100).toFixed(1)+'%':'—'}
+function moneyUnits(price){ return price>0 ? [UNITS,UNITS*(price/100)] : [UNITS*(100/(-price)),UNITS]; }
+
+const S={league:'NFL',rows:[],weeks:[]};
+
+async function loadLeague(){
+  S.league=$("#lg").value; S.rows=[]; S.weeks=[];
+  const base=ROOT[S.league]; const maxW=S.league==='MLB'?30:18;
+  for(let w=1; w<=maxW; w++){
+    try{
+      const r=await fetch(`${base}/week-${String(w).padStart(2,'0')}.json`,{cache:'no-store'});
+      if(!r.ok) continue; const j=await r.json(); S.weeks.push(w);
+      for(const p of (j.picks||[])){
+        const row={...p,week:w}; if(!row.units) row.units=UNITS;
+        const wl = row.result==='W'?1:row.result==='L'?-1:0;
+        const [risk,win]=moneyUnits(row.price??-110);
+        row.netUnits = wl===1?win : wl===-1? -risk : 0;
+        S.rows.push(row);
+      }
+    }catch(e){}
+  }
+  render();
+}
+
+function agg(rows){ const W=rows.filter(r=>r.result==='W').length, L=rows.filter(r=>r.result==='L').length, P=rows.filter(r=>r.result==='P').length; const U=rows.reduce((a,b)=>a+(b.netUnits||0),0); const den=(W+L+P||1)*UNITS; return {W,L,P,U,den}; }
+
+function render(){
+  const A=agg(S.rows);
+  document.getElementById("tSeason").innerHTML = `<tr><td>All</td><td>${A.W}-${A.L}-${A.P}</td><td class="${A.U>=0?'ok':'bad'}">${fmt(A.U)}</td><td>${pct(A.U,A.den)}</td></tr>`;
+  const byType={}, byColor={};
+  for(const r of S.rows){
+    const wl = r.result==='W'?1:r.result==='L'?-1:0;
+    const t=(byType[r.type||'ATS']||(byType[r.type||'ATS']={w:0,l:0,p:0,u:0}));
+    if(wl===1)t.w++; else if(wl===-1)t.l++; else t.p++; t.u+=(r.netUnits||0);
+    const c=(r.color||'NA').toUpperCase(); const cc=(byColor[c]||(byColor[c]={w:0,l:0,p:0,u:0}));
+    if(wl===1)cc.w++; else if(wl===-1)cc.l++; else cc.p++; cc.u+=(r.netUnits||0);
+  }
+  document.getElementById("tType").innerHTML = ['ATS','ML','OU'].map(k=>{const s=byType[k]||{w:0,l:0,p:0,u:0};const d=(s.w+s.l+s.p||1)*UNITS;
+    return `<tr><td>${k}</td><td>${s.w}-${s.l}-${s.p}</td><td class="${s.u>=0?'ok':'bad'}">${fmt(s.u)}</td><td>${pct(s.u,d)}</td></tr>`}).join("");
+  document.getElementById("tColor").innerHTML = ['GREEN','YELLOW','RED','NA'].map(k=>{const s=byColor[k]||{w:0,l:0,p:0,u:0};const d=(s.w+s.l+s.p||1)*UNITS;
+    return `<tr><td>${k}</td><td>${s.w}-${s.l}-${s.p}</td><td class="${s.u>=0?'ok':'bad'}">${fmt(s.u)}</td><td>${pct(s.u,d)}</td></tr>`}).join("");
+  document.getElementById("weeks").innerHTML = S.weeks.length ? S.weeks.map(w=>`<span class="chip">W${w}</span>`).join(" ") : '<span class="muted">No week files found yet.</span>';
+  document.getElementById("hdr").textContent = `${S.league} • Weeks ${S.weeks.join(", ")||"—"} • Units ${UNITS}`;
+}
+
+function parsePickLine(s){
+  // Supports: side HOME/AWAY for ATS/ML; side OVER/UNDER for OU
+  const o={type:"ATS",price:-110,color:"GREEN",result:"P",units:UNITS,side:null};
+  const mTeams = s.match(/^\s*(.+?)\s*@\s*(.+?)\s*\|/); if(mTeams){o.away=mTeams[1].trim();o.home=mTeams[2].trim();o.game=`${o.away} @ ${o.home}`;}
+  const mC=s.match(/\bcolor\s+(green|yellow|red)\b/i); if(mC) o.color=mC[1].toUpperCase();
+  const mSide=s.match(/\bside\s+(home|away|over|under)\b/i); if(mSide) o.side=mSide[1].toUpperCase();
+  const mATS=s.match(/\bATS\s+([+-]?\d+(?:\.\d+)?)\s+([+-]?\d+)\b/i);
+  const mML=s.match(/\bML\s+([+-]?\d+)\b/i);
+  const mOU=s.match(/\bOU\s+(\d+(?:\.\d+)?)\s+([+-]?\d+)\b/i);
+  if(mATS){o.type="ATS";o.spread=parseFloat(mATS[1]);o.price=parseInt(mATS[2]);return o;}
+  if(mML){o.type="ML";o.price=parseInt(mML[1]);return o;}
+  if(mOU){o.type="OU";o.total=parseFloat(mOU[1]);o.price=parseInt(mOU[2]);return o;}
+  return null;
+}
+
+document.getElementById("mk").addEventListener("click",()=>{
+  const wk = Number(document.getElementById("wk").value||0), lg=document.getElementById("lg").value;
+  const txt = document.getElementById("paste").value.trim();
+  if(!(wk>=1 && wk<=30)){ document.getElementById("pmsg").textContent="Enter valid Week/Series (1–30)"; return; }
+  if(!txt){ document.getElementById("pmsg").textContent="Paste at least one line."; return; }
+  const lines = txt.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const picks=[]; for(const line of lines){ const p=parsePickLine(line); if(!p){ document.getElementById("pmsg").textContent="Could not parse: "+line; return; } picks.push(p); }
+  const obj={league:lg, season:2024, week:wk, picks, results:[], bankroll:0, weekRoi:0, seasonRoi:0, sparkline:[], homeRows:[]};
+  const blob=new Blob([JSON.stringify(obj,null,2)],{type:"application/json"});
+  const a=document.getElementById("dl"); a.href=URL.createObjectURL(blob); a.download=`week-${String(wk).padStart(2,'0')}.json`; a.style.display="inline-block"; a.textContent="Download week-"+String(wk).padStart(2,'0');
+  document.getElementById("pmsg").textContent=`Save into ${ROOT[lg]}/ then redeploy.`;
+});
+
+function parseScoreLine(s){ const z=s.replace(/—|–/g,'-').match(/^\s*([A-Za-z .'\-]+?)\s+(\d+)\s+([A-Za-z .'\-]+?)\s+(\d+)\s*$/); if(!z) return null; return {a:z[1].trim(),as:+z[2],b:z[3].trim(),bs:+z[4]}; }
+
+document.getElementById("applyGrade").addEventListener("click",()=>{
+  const txt=document.getElementById("grade").value.trim(); if(!txt){ document.getElementById("gmsg").textContent="Paste some finals first."; return; }
+  const finals = txt.split(/\r?\n/).map(parseScoreLine).filter(Boolean);
+  let hits=0;
+  for(const f of finals){
+    const rows=S.rows.filter(r=>{
+      const teams = ((r.away||'')+' '+(r.home||'')).toLowerCase();
+      return teams.includes(f.a.toLowerCase()) && teams.includes(f.b.toLowerCase());
+    });
+    for(const r of rows){
+      let wl=0;
+      const awayWin = f.as>f.bs, homeWin = f.bs>f.as, sum=f.as+f.bs;
+      if(r.type==='ML'){
+        if(!r.side){ wl=0; } else { wl = (r.side==='HOME' && homeWin) || (r.side==='AWAY' && awayWin) ? 1 : -1; }
+      } else if(r.type==='OU' && r.total){
+        if(!r.side){ wl=0; } else { wl = (r.side==='OVER' && sum>r.total) || (r.side==='UNDER' && sum<r.total) ? 1 : (sum===r.total?0:-1); }
+      } else if (r.type==='ATS' && r.spread!=null){
+        if(!r.side){ wl=0; }
+        else {
+          const margin = (homeWin? (f.bs-f.as) : (f.as-f.bs)); // positive = home by X, negative = away by X
+          const pickedHome = r.side==='HOME';
+          const covered = pickedHome ? (margin + r.spread > 0) : ((-margin) + (-r.spread) > 0); // normalize to picked team
+          wl = margin===0 && r.spread===0 ? 0 : (covered?1:-1);
+        }
+      }
+      const [risk,win]=moneyUnits(r.price??-110);
+      r.result = wl===1?'W': wl===-1?'L':'P';
+      r.netUnits = wl===1?win : wl===-1? -risk : 0; hits++;
+    }
+  }
+  document.getElementById("gmsg").textContent=`Graded ${hits} rows. (Exact for ATS/ML with side; OU exact with OVER/UNDER.)`;
+  render();
+});
+
+document.getElementById("reload").addEventListener("click", loadLeague);
+document.getElementById("print").addEventListener("click", ()=>window.print());
+document.getElementById("csv").addEventListener("click", ()=>{
+  const cols=['league','week','type','side','color','price','spread','total','units','result','netUnits','away','home'];
+  const rows=[cols.join(',')].concat(S.rows.map(r=>cols.map(k=> (r[k]??'')).toString()));
+  const blob=new Blob([rows.join('\n')],{type:"text/csv"}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${document.getElementById("lg").value}-season.csv`; a.click();
+});
+
+loadLeague();
+</script>
+</body></html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sports Edge</title>
+<style>
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#0f1b2b;color:#e6eef9;margin:32px}
+  .wrap{max-width:980px;margin:auto}
+  h1{margin:0 0 12px} p{color:#98a7bd}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:20px}
+  .card{background:#15253c;border-radius:14px;padding:20px}
+  a.btn{display:inline-block;margin-top:10px;background:#0ea5e9;color:white;text-decoration:none;padding:10px 14px;border-radius:10px}
+  a.btn:hover{background:#0284c7}
+  .disclaimer{margin-top:24px;color:#8aa0b9;font-size:12px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Sports Edge — Live</h1>
+    <p>Realtime model snapshots. Green/Yellow/Red confidence badges. For entertainment and research only.</p>
+
+    <div class="grid">
+      <div class="card">
+        <h2>NFL — Live Board</h2>
+        <p>Moneyline, ATS, O/U — color-coded edges from our model.</p>
+        <a class="btn" href="/sportsedge/nfl.html">Open NFL Board</a>
+      </div>
+      <div class="card">
+        <h2>UFC — Live Card</h2>
+        <p>Latest fights with model ML lean.</p>
+        <a class="btn" href="/sportsedge/index.html#ufc">Open UFC</a>
+      </div>
+    </div>
+
+    <p class="disclaimer">This site is for information and entertainment purposes only. Do not use for real-money wagering.</p>
+  </div>
+</body>
+</html>

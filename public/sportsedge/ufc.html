@@ -1,0 +1,34 @@
+﻿<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UFC — Sports Edge</title>
+<style>
+  :root{--bg:#0f1b2b;--card:#15253c;--text:#e6eef9;--muted:#98a7bd}
+  body{margin:24px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
+  .wrap{max-width:1024px;margin:auto} a{color:#a3d9ff}
+  .card{background:var(--card);border-radius:12px;padding:16px;margin-top:16px}
+  ul{margin:8px 0 0 0;padding-left:18px} li{margin:6px 0}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;margin-left:8px;background:#0f5132;color:#d1f2e0}
+</style>
+</head><body>
+<div class="wrap">
+  <p><a href="/sportsedge">← Back</a></p>
+  <h1>UFC</h1>
+  <div class="card"><ul id="list"></ul></div>
+</div>
+<script>
+function badge(txt){ const s=document.createElement('span'); s.className='badge'; s.textContent=txt; return s; }
+async function load(){
+  const list=document.getElementById('list'); list.innerHTML='';
+  let d={ufc:[],updatedAt:Date.now()};
+  try{ const r=await fetch('/api/sportsedge/update',{cache:'no-store'}); d=await r.json(); }catch{}
+  (d.ufc||[]).forEach(f=>{
+    const li=document.createElement('li');
+    const a=f.away_team||f.fighter_b||'Fighter B', h=f.home_team||f.fighter_a||'Fighter A';
+    li.textContent = a + ' vs ' + h + ' ';
+    const p=f.picks||{}; if(p.ml&&p.ml.pick){ li.append(' ', badge('ML: '+p.ml.pick+(p.ml.value?' ('+p.ml.value+')':''))); }
+    list.appendChild(li);
+  });
+}
+load(); setInterval(load, 90000);
+</script>
+</body></html>

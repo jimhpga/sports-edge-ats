@@ -1,0 +1,61 @@
+﻿{
+    "league":  "NFL",
+    "season":  2024,
+    "week":  9,
+    "picks":  [
+                  {
+                      "league":  "NFL",
+                      "game":  "Ravens @ Bengals | ATS -2.5 -110 | side AWAY | color GREEN",
+                      "away":  "Ravens",
+                      "home":  "Bengals",
+                      "type":  "ATS",
+                      "side":  null,
+                      "spread":  -2.5,
+                      "total":  null,
+                      "price":  -110,
+                      "color":  "GREEN",
+                      "units":  100,
+                      "result":  "P"
+                  },
+                  {
+                      "league":  "NFL",
+                      "game":  "Lions @ Bears   | ML -145     | side AWAY | color GREEN",
+                      "away":  "Lions",
+                      "home":  "Bears",
+                      "type":  "ML",
+                      "side":  null,
+                      "spread":  null,
+                      "total":  null,
+                      "price":  -145,
+                      "color":  "GREEN",
+                      "units":  100,
+                      "result":  "P"
+                  },
+                  {
+                      "league":  "NFL",
+                      "game":  "Dolphins @ Jets | OU 41.5 -108 | side OVER | color YELLOW",
+                      "away":  "Dolphins",
+                      "home":  "Jets",
+                      "type":  "OU",
+                      "side":  null,
+                      "spread":  null,
+                      "total":  41.5,
+                      "price":  -108,
+                      "color":  "GREEN",
+                      "units":  100,
+                      "result":  "P"
+                  }
+              ],
+    "results":  [
+
+                ],
+    "bankroll":  0,
+    "weekRoi":  0,
+    "seasonRoi":  0,
+    "sparkline":  [
+
+                  ],
+    "homeRows":  [
+
+                 ]
+}
