@@ -1,35 +1,14 @@
 ﻿{
     "season":  2025,
     "week":  10,
-    "updated":  "2025-11-06 08:18 PT",
+    "updated":  "2025-11-06 16:42 PT",
     "record":  {
-                   "green":  1,
-                   "yellow":  1,
+                   "green":  0,
+                   "yellow":  0,
                    "red":  0,
-                   "summary":  "G 1 • Y 1 • R 0"
+                   "summary":  "G 0 • Y 0 • R 0"
                },
     "games":  [
-                  {
-                      "home":  "49ers",
-                      "away":  "Seahawks",
-                      "market":  "spread",
-                      "line":  -6.5,
-                      "model":  -9.1,
-                      "edge":  2.6,
-                      "color":  "green",
-                      "recommendation":  "49ers -6.5",
-                      "kickoff":  "Sun 1:25 PT"
-                  },
-                  {
-                      "home":  "Chiefs",
-                      "away":  "Broncos",
-                      "market":  "total",
-                      "line":  44.5,
-                      "model":  48.2,
-                      "edge":  3.7,
-                      "color":  "yellow",
-                      "recommendation":  "Over 44.5",
-                      "kickoff":  "Sun 1:05 PT"
-                  }
+
               ]
 }

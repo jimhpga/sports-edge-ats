@@ -13,10 +13,10 @@
                   {
                       "season":  2025,
                       "record":  {
-                                     "green":  1,
-                                     "yellow":  1,
+                                     "green":  0,
+                                     "yellow":  0,
                                      "red":  0,
-                                     "summary":  "G 1 • Y 1 • R 0"
+                                     "summary":  "G 0 • Y 0 • R 0"
                                  },
                       "week":  10
                   }
