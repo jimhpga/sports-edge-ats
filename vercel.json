@@ -1,1 +1,10 @@
-{"version":2,"builds":[{"src":"public/**","use":"@vercel/static"}],"routes":[{"src":"/(.*)","dest":"/public/$1"}]}
+﻿{
+  "version": 2,
+  "functions": {
+    "api/**/*.js": { "runtime": "edge" }
+  },
+  "rewrites": [
+    { "source": "/sportsedge",  "destination": "/public/sportsedge/index.html" },
+    { "source": "/sportsedge/", "destination": "/public/sportsedge/index.html" }
+  ]
+}
