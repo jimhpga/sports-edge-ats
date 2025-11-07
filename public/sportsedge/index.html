@@ -1,25 +1,18 @@
 ﻿<!doctype html>
 <meta charset='utf-8'>
-<title>SportsEdge NFL • UI v16</title>
-<body style='background:#0b0f14;color:#eaf0f8;font:16px system-ui;padding:28px'>
-  <h1 style='margin:0 0 8px'>SportsEdge NFL • <span style='color:#7CFFB2'>UI v16</span></h1>
-  <div class='muted' style='opacity:.65;margin:0 0 14px'>11/06/2025 19:17:20 • /sportsedge/index.html</div>
-  <pre id='out' style='background:#111a2a;padding:12px;border-radius:10px;border:1px solid #1b2a43'>Loading…</pre>
+<title>SportsEdge NFL • UI v17</title>
+<body style='background:#0b0f14;color:#eaf0f8;font:16px system-ui;padding:40px'>
+  <h1 style='color:#4da3ff'>SportsEdge NFL Picks • <span style='color:#77ff99'>UI v17</span></h1>
+  <p style='opacity:.6;margin-top:0'>11/06/2025 19:21:15</p>
+  <pre id='out' style='background:#111a2a;padding:16px;border-radius:10px;border:1px solid #223'><b>Loading current.json...</b></pre>
   <script>
-    (async ()=>{
-      const url='./data/nfl/current.json?t='+Date.now();
-      const box=document.getElementById('out');
-      box.textContent = 'GET '+url;
-      try{
-        const r=await fetch(url,{cache:'no-store'});
-        const j=await r.json();
-        box.textContent = [
-          'HTTP '+r.status,
-          'season '+j.season+'  week '+j.week,
-          'games: '+(j.games?.length??0),
-          'updated: '+(j.updated||'n/a')
-        ].join('\n');
-      }catch(e){ box.textContent='fetch error: '+e; }
-    })();
+    (async()=>{
+      const u='./data/nfl/current.json?t='+Date.now();
+      const r=await fetch(u,{cache:'no-store'});
+      const j=await r.json();
+      document.getElementById('out').textContent=
+        'HTTP '+r.status+'\\nSeason '+j.season+' Week '+j.week+
+        '\\nGames: '+(j.games?.length??0)+'\\nUpdated: '+j.updated;
+    })().catch(e=>out.textContent='Error '+e);
   </script>
 </body>
