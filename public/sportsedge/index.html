@@ -1,21 +1,25 @@
 ﻿<!doctype html>
-<meta charset="utf-8">
-<title>SportsEdge Smoke • UI v12</title>
-<body style="background:#0b0f14;color:#eaf0f8;font:16px system-ui;padding:24px">
-  <h1>SportsEdge Smoke • <span style="color:#4da3ff">UI v12</span></h1>
-  <p id="p1">loading ./data/nfl/current.json …</p>
+<meta charset='utf-8'>
+<title>SportsEdge NFL Picks • UI v14</title>
+<body style='background:#0a0f18;color:#eaf0f8;font:16px system-ui;margin:0;padding:32px;font-family:system-ui'>
+  <h1 style='color:#4da3ff;font-weight:600;margin-bottom:8px'>SportsEdge NFL Picks • <span style='color:#77ff99'>UI v14</span></h1>
+  <p style='opacity:.6;margin-top:0'>Version marker for cache bust • 11/06/2025 19:07:09</p>
+  <hr style='border:0;border-top:1px solid #222;margin:20px 0'>
+
+  <div id='out' style='white-space:pre;font-family:monospace'>Loading current.json …</div>
+
   <script>
     (async () => {
       const url = './data/nfl/current.json?t=' + Date.now();
-      document.getElementById('p1').textContent = 'fetching ' + url;
+      document.getElementById('out').textContent = 'fetching ' + url;
       try {
         const r = await fetch(url, {cache:'no-store'});
-        document.body.insertAdjacentHTML('beforeend', '<pre>HTTP ' + r.status + '</pre>');
         const j = await r.json();
-        document.body.insertAdjacentHTML('beforeend', '<pre>games: ' + (j.games?.length ?? 0) + '\nweek: ' + j.week + ' • ' + j.season + '</pre>');
-        document.body.insertAdjacentHTML('beforeend', '<pre style="color:#9fb0c6">note: if this shows games: 0, your JSON is empty. If it shows HTTP 404, routing is wrong.</pre>');
-      } catch(e) {
-        document.body.insertAdjacentHTML('beforeend', '<pre style="color:#f26c5b">fetch error: ' + e + '</pre>');
+        const count = j.games?.length ?? 0;
+        document.getElementById('out').innerHTML =
+          'HTTP ' + r.status + '\\nseason ' + j.season + ' week ' + j.week + '\\nGames: ' + count;
+      } catch(e){
+        document.getElementById('out').innerHTML = 'Error: ' + e;
       }
     })();
   </script>
