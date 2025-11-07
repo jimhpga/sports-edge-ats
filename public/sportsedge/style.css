@@ -1,17 +1,54 @@
-﻿:root{--bg:#0b0f14;--fg:#e7eef7;--muted:#a9b6c6;--card:#121924;--g:#2ecc71;--y:#f1c40f;--r:#e74c3c}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial}
+﻿:root {
+  --bg:#0b0f14; --fg:#e7eef7; --muted:#a9b6c6; --card:#121924;
+  --g:#2ecc71; --y:#f1c40f; --r:#e74c3c; --line:#1a2533; --dash:#223047;
+  --btn:#1e2a3a; --btnb:#2b3749;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial}
+h1,h2{margin:0 0 .35rem 0}
 .hero{display:flex;gap:18px;align-items:center;padding:28px 24px;border-bottom:1px solid #0e1621;background:linear-gradient(180deg,#0e1722,#0b0f14)}
-.logo{width:54px;height:54px}.sub{color:var(--muted);margin:.25rem 0}
-.container{max-width:1100px;margin:0 auto;padding:24px}
-.card{background:var(--card);border:1px solid #1a2533;border-radius:16px;padding:16px}
+.logo{width:54px;height:54px}
+.sub{color:var(--muted);margin:.25rem 0}
+.small{font-size:12px} .muted{color:var(--muted)}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+
+.controls .row{display:flex;gap:12px;align-items:flex-end}
+.controls .wrap{flex-wrap:wrap}
+label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+select,input{background:#0f1722;color:var(--fg);border:1px solid var(--btnb);border-radius:10px;padding:8px 10px;min-width:140px}
+input{min-width:260px}
+.grow{flex:1}
+
+.btn{background:var(--btn);border:1px solid var(--btnb);color:var(--fg);padding:8px 12px;border-radius:10px;cursor:pointer}
+.btn:hover{filter:brightness(1.1)}
+.subtle{opacity:.85}
+.actions{display:flex;gap:8px;margin-left:auto}
+
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
-.week{background:var(--card);border:1px solid #1a2533;border-radius:14px;padding:12px}
+.week{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
 .h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.badge{padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #2b3749;color:var(--muted)}
-.row{display:flex;justify-content:space-between;padding:8px;border-top:1px dashed #223047;gap:10px}
-.team{flex:1}.edge{font-weight:600}
-.dot{display:inline-block;width:.75em;height:.75em;border-radius:50%}
-.dot.g{background:var(--g)}.dot.y{background:var(--y)}.dot.r{background:var(--r)}
-.tag{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;border:1px solid #2b3749;color:var(--muted);font-size:12px}
+.badge{padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid var(--btnb);color:var(--muted)}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;border:1px solid var(--btnb);color:var(--muted);font-size:12px}
 .footer{color:var(--muted);text-align:center;padding:20px;border-top:1px solid #0e1621}
-.small{color:var(--muted);font-size:12px}.code{font-family:ui-monospace,Menlo,Consolas,monospace;color:#b5c7ff}
+.dot{display:inline-block;width:.75em;height:.75em;border-radius:50%}
+.dot.g{background:var(--g)} .dot.y{background:var(--y)} .dot.r{background:var(--r)}
+
+.table .thead,.table .row{display:grid;grid-template-columns:220px 1fr 120px 160px 170px;gap:8px;align-items:center}
+.table .thead{color:var(--muted);font-size:13px;border-bottom:1px dashed var(--dash);padding-bottom:6px;margin-bottom:6px}
+.table .row{padding:10px 0;border-top:1px dashed var(--dash)}
+.pick{font-weight:600}
+.note{color:var(--muted);font-size:12px}
+.k{color:var(--muted);font-size:12px}
+.badge.g{border-color:var(--g);color:var(--g)}
+.badge.y{border-color:var(--y);color:var(--y)}
+.badge.r{border-color:var(--r);color:var(--r)}
+
+@media (max-width: 920px){
+  .table .thead,.table .row{grid-template-columns:1fr 120px 160px 170px}
+  .hideM{display:none}
+}
+@media (max-width: 640px){
+  .table .thead,.table .row{grid-template-columns:1fr 120px}
+  .hideS{display:none}
+}
