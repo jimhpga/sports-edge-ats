@@ -1,2 +1,24 @@
-﻿{ "weeks": [ { "season": 2024, "week": 1, "record": { "green": 6, "yellow": 4, "red": 2, "summary": "G 6–2 • Y 2–2 • R 0–2" } },
-             { "season": 2025, "week": 10, "record": { "green": 2, "yellow": 1, "red": 0, "summary": "G 2 • Y 1 • R 0" } } ] }
+﻿{
+    "weeks":  [
+                  {
+                      "season":  2024,
+                      "week":  1,
+                      "record":  {
+                                     "green":  6,
+                                     "yellow":  4,
+                                     "red":  2,
+                                     "summary":  "G 6–2 • Y 2–2 • R 0–2"
+                                 }
+                  },
+                  {
+                      "season":  2025,
+                      "record":  {
+                                     "green":  1,
+                                     "yellow":  1,
+                                     "red":  0,
+                                     "summary":  "G 1 • Y 1 • R 0"
+                                 },
+                      "week":  10
+                  }
+              ]
+}
