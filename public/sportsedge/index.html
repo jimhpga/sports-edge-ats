@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>SportsEdge — NFL Model Picks</title>
+  <title>SportsEdge — NFL Model Picks (UI v11)</title>
   <link rel="preload" as="fetch" href="./data/nfl/current.json" crossorigin>
-  <link rel="stylesheet" href="./style.css?v=6"/>
+  <link rel="stylesheet" href="./style.css?v=11"/>
 </head>
 <body>
   <header class="hero">
@@ -13,7 +13,7 @@
       <img class="logo" src="./logo.svg" alt="SportsEdge"/>
       <div>
         <h1>SportsEdge</h1>
-        <p class="muted">NFL Model Picks • internal demo</p>
+        <p class="muted">NFL Model Picks • internal demo • UI v11</p>
       </div>
     </div>
     <div class="legend">
@@ -26,32 +26,16 @@
   <main class="wrap">
     <section class="panel">
       <div class="controls">
-        <div class="control">
-          <label>Week</label>
-          <select id="selWeek"></select>
-        </div>
-        <div class="control">
-          <label>Market</label>
-          <select id="selMarket">
-            <option value="all">All</option>
-            <option value="spread">Spread</option>
-            <option value="total">Total</option>
-            <option value="moneyline">Moneyline</option>
-          </select>
-        </div>
-        <div class="control">
-          <label>Confidence</label>
-          <select id="selColor">
-            <option value="all">All</option>
-            <option value="green">Green</option>
-            <option value="yellow">Yellow</option>
-            <option value="red">Red</option>
-          </select>
-        </div>
-        <div class="control grow">
-          <label>Search</label>
-          <input id="txtSearch" type="text" placeholder="Team, pick, note…"/>
-        </div>
+        <div class="control"><label>Week</label><select id="selWeek"></select></div>
+        <div class="control"><label>Market</label><select id="selMarket">
+          <option value="all">All</option><option value="spread">Spread</option>
+          <option value="total">Total</option><option value="moneyline">Moneyline</option>
+        </select></div>
+        <div class="control"><label>Confidence</label><select id="selColor">
+          <option value="all">All</option><option value="green">Green</option>
+          <option value="yellow">Yellow</option><option value="red">Red</option>
+        </select></div>
+        <div class="control grow"><label>Search</label><input id="txtSearch" type="text" placeholder="Team, pick, note…"/></div>
         <div class="actions">
           <button id="btnExport" class="btn">Export CSV</button>
           <button id="btnShare"  class="btn ghost">Share</button>
@@ -67,11 +51,7 @@
       </div>
 
       <div id="table" class="card table">
-        <div class="loading">
-          <div class="shimmer"></div>
-          <div class="shimmer"></div>
-          <div class="shimmer"></div>
-        </div>
+        <div class="loading"><div class="shimmer"></div><div class="shimmer"></div><div class="shimmer"></div></div>
       </div>
     </section>
 
@@ -81,12 +61,7 @@
     </section>
   </main>
 
-  <footer class="footer">
-    <span id="metaMsg" class="muted small"></span>
-    <span class="muted small"> • © SportsEdge (internal)</span>
-  </footer>
-
-  <script type="module" src="./app.js?v=9"></script>
+  <footer class="footer"><span id="metaMsg" class="muted small"></span><span class="muted small"> • © SportsEdge (internal)</span></footer>
+  <script type="module" src="./app.js?v=11"></script>
 </body>
 </html>
-
