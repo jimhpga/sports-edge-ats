@@ -1,193 +1,114 @@
-﻿const $  = (s) => document.querySelector(s);
-const $$ = (s) => Array.from(document.querySelectorAll(s));
-const qp = new URLSearchParams(location.search);
-const fmt = (n, d=1) => (n===null||n===undefined||Number.isNaN(+n)) ? "—" : (+n).toFixed(d);
+﻿const qs = (s)=>document.querySelector(s);
+const fmt = (n,d=1)=> (n==null||Number.isNaN(+n)) ? "—" : (+n).toFixed(d);
+const paths = { meta:"./data/meta.json", current:"./data/nfl/current.json", history:"./data/nfl/history.json" };
 
-const metaEl   = document.querySelector("#meta");
-const weekEl   = document.querySelector("#thisWeek");
-const archEl   = document.querySelector("#archive");
-const titleWEl = document.querySelector("#titleWeek");
-const sumEl    = document.querySelector("#summary");
-
-const selWeek   = document.querySelector("#selWeek");
-const selMarket = document.querySelector("#selMarket");
-const selColor  = document.querySelector("#selColor");
-const selSort   = document.querySelector("#selSort");
-const txtSearch = document.querySelector("#txtSearch");
-const btnShare  = document.querySelector("#btnShare");
-const btnExport = document.querySelector("#btnExport");
-const btnClear  = document.querySelector("#btnClear");
-
-const paths = {
-  meta:    "./data/meta.json",
-  current: "./data/nfl/current.json",
-  history: "./data/nfl/history.json"
+const el = {
+  meta: qs("#metaMsg"), tbl: qs("#table"), arch: qs("#archive"),
+  headline: qs("#headline"), pills: qs("#recordPills"), updated: qs("#updated"),
+  selWeek: qs("#selWeek"), selMarket: qs("#selMarket"), selColor: qs("#selColor"),
+  txtSearch: qs("#txtSearch"), btnShare: qs("#btnShare"), btnExport: qs("#btnExport"), btnClear: qs("#btnClear")
 };
 
-async function j(path, fallback){
-  try{ const r = await fetch(path, {cache:"no-store"}); if(!r.ok) throw new Error(r.statusText); return await r.json(); }
-  catch(e){ return fallback; }
-}
-const dot = (c) => c==="green" ? '<span class="dot g"></span>' :
-                    c==="yellow"? '<span class="dot y"></span>' :
-                                  '<span class="dot r"></span>';
+async function getJSON(p, fb){ try{ const r=await fetch(p+"?v="+Date.now(),{cache:"no-store"}); if(!r.ok) throw 0; return await r.json(); }catch{ return fb; } }
+const dot=(c)=> c==="green"?'<span class="dot g"></span>':c==="yellow"?'<span class="dot y"></span>':'<span class="dot r"></span>';
+const koScore=(s)=>{ if(!s) return 0; const m=/([A-Za-z]{3})\s+(\d{1,2}):(\d{2})/i.exec(s); const order={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6,Sun:7}; return m? (order[m[1]]||0)*10000+(+m[2])*100+(+m[3]) : Date.parse(s)||0; };
 
-function parseKickoff(str){
-  if(!str) return null;
-  const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-  const m = /([A-Za-z]{3})\s+(\d{1,2}):(\d{2})/i.exec(str);
-  if(m){ return days.indexOf(m[1].substr(0,3)) * 10000 + (+m[2])*100 + (+m[3]); }
-  const t = Date.parse(str);
-  return Number.isNaN(t) ? null : t;
-}
+function head(){ return `<div class="thead">
+  <div>Matchup</div><div class="hideM">Pick</div><div>Edge</div><div class="hideS">Model vs Line</div><div>Kickoff</div>
+</div>`; }
 
-function toCSV(rows){
-  const head = ["home","away","market","line","model","edge","color","recommendation","kickoff"];
-  const esc = (v)=> `"${String(v??"").replaceAll('"','""')}"`;
-  return [head.join(","), ...rows.map(r => head.map(k=>esc(r[k])).join(","))].join("\r\n");
-}
-
-function renderControls(weeks, currentWeek){
-  const unique = [];
-  weeks.slice().sort((a,b)=> (a.season-b.season) || (a.week-b.week))
-    .forEach(w=>{
-      const key = `${w.season}-w${String(w.week).padStart(2,"0")}`;
-      if(!unique.includes(key)) unique.push(key);
-    });
-  selWeek.innerHTML = unique.reverse().map(k=>{
-    const [season, wk] = k.split("-w");
-    const isCur = (+season===currentWeek.season && +wk===currentWeek.week);
-    const label = `W${+wk} ${season}`;
-    return `<option value="${season}-w${wk}" ${isCur?'selected':''}>${label}</option>`;
+function renderRows(list){
+  return list.map(g=>{
+    const ml=`${g.market||""} ${g.line??""}`.trim();
+    const delta=(g.model!=null && g.line!=null)? fmt((+g.model)-(+g.line),1) : "—";
+    return `<div class="row">
+      <div><div class="pick">${dot(g.color)} ${g.away} @ ${g.home}</div><div class="note hideM">${g.recommendation||""} <span class="k">(${ml})</span></div></div>
+      <div class="hideM"><span class="pick">${g.recommendation||""}</span> <span class="k">(${ml})</span></div>
+      <div><span class="badge ${g.color||""}">${fmt(g.edge,1)}</span></div>
+      <div class="hideS"><span class="k">Model:</span> ${fmt(g.model,1)} · <span class="k">Line:</span> ${fmt(g.line,1)} · <span class="k">Δ:</span> ${delta}</div>
+      <div>${g.kickoff||"TBD"}</div>
+    </div>`;
   }).join("");
-
-  if(qp.get("market")) selMarket.value = qp.get("market");
-  if(qp.get("color"))  selColor.value  = qp.get("color");
-  if(qp.get("sort"))   selSort.value   = qp.get("sort");
-  if(qp.get("q"))      txtSearch.value = qp.get("q");
 }
 
-function applyFilters(rows){
-  let out = rows.slice();
-  const market = selMarket.value;
-  const color  = selColor.value;
-  const q      = (txtSearch.value||"").trim().toLowerCase();
-
-  if(market !== "all") out = out.filter(r => (r.market||"").toLowerCase()===market);
-  if(color  !== "all") out = out.filter(r => (r.color||"").toLowerCase()===color);
-  if(q) out = out.filter(r => (
-    (r.home||"").toLowerCase().includes(q) ||
-    (r.away||"").toLowerCase().includes(q) ||
-    (r.recommendation||"").toLowerCase().includes(q)
-  ));
-
-  switch(selSort.value){
-    case "edgeAsc":      out.sort((a,b)=> (+a.edge||0) - (+b.edge||0)); break;
-    case "kickoffAsc":   out.sort((a,b)=> (parseKickoff(a.kickoff)||0) - (parseKickoff(b.kickoff)||0)); break;
-    case "kickoffDesc":  out.sort((a,b)=> (parseKickoff(b.kickoff)||0) - (parseKickoff(a.kickoff)||0)); break;
-    case "alpha":        out.sort((a,b)=> (a.home+a.away).localeCompare(b.home+b.away)); break;
-    default:             out.sort((a,b)=> (+b.edge||0) - (+a.edge||0));
-  }
+function applyFilters(all){
+  const m = el.selMarket.value, c = el.selColor.value, q=(el.txtSearch.value||"").toLowerCase();
+  let out = all.slice();
+  if(m!=="all") out = out.filter(x=>(x.market||"").toLowerCase()===m);
+  if(c!=="all") out = out.filter(x=>(x.color||"").toLowerCase()===c);
+  if(q) out = out.filter(x=>(x.home||"").toLowerCase().includes(q) || (x.away||"").toLowerCase().includes(q) || (x.recommendation||"").toLowerCase().includes(q));
+  out.sort((a,b)=> (+(b.edge||0)) - (+(a.edge||0)) || koScore(a.kickoff)-koScore(b.kickoff));
   return out;
 }
 
 function renderWeek(week){
-  titleWEl.textContent = `Week ${week.week} • ${week.season}`;
-  const all = week.games || [];
-  const rows = applyFilters(all);
-  const g = rows.filter(r=>r.color==="green").length;
-  const y = rows.filter(r=>r.color==="yellow").length;
-  const r = rows.filter(r=>r.color==="red").length;
-  sumEl.innerHTML = `Showing <b>${rows.length}</b> of ${all.length} • <span class="badge g">G ${g}</span> <span class="badge y">Y ${y}</span> <span class="badge r">R ${r}</span>`;
+  el.headline.textContent = `Week ${week.week} • ${week.season}`;
+  el.updated.textContent  = week.updated ? `Updated ${week.updated}` : "";
+  const g = week.games.filter(x=>x.color==='green').length;
+  const y = week.games.filter(x=>x.color==='yellow').length;
+  const r = week.games.filter(x=>x.color==='red').length;
+  el.pills.innerHTML = `<span class="pill g">G ${g}</span><span class="pill y">Y ${y}</span><span class="pill r">R ${r}</span>`;
 
-  const head = `<div class="thead"><div>Matchup</div><div class="hideM">Pick</div><div>Edge</div><div class="hideS">Model vs Line</div><div class="hideM">Kickoff</div></div>`;
-  const html = rows.map(gm => {
-    const ml = `${gm.market||""} ${gm.line??""}`.trim();
-    const delta = (gm.model!==undefined && gm.line!==undefined) ? fmt((+gm.model) - (+gm.line),1) : "—";
-    const ko = gm.kickoff || "TBD";
-    return `
-      <div class="row">
-        <div>
-          <div class="pick">${dot(gm.color)} ${gm.away} @ ${gm.home}</div>
-          <div class="note hideM">${gm.recommendation||""} <span class="k">(${ml})</span></div>
-        </div>
-        <div class="hideM"><span class="pick">${gm.recommendation||""}</span> <span class="k">(${ml})</span></div>
-        <div><span class="badge ${gm.color||""}">${fmt(gm.edge,1)}</span></div>
-        <div class="hideS"><span class="k">Model:</span> ${fmt(gm.model,1)} &nbsp; <span class="k">Line:</span> ${fmt(gm.line,1)} &nbsp; <span class="k">Δ:</span> ${delta}</div>
-        <div class="hideM">${ko}</div>
-      </div>
-    `;
-  }).join("");
-  weekEl.innerHTML = head + (html || `<p class="small">No games in this view.</p>`);
+  const rows = applyFilters(week.games||[]);
+  el.tbl.innerHTML = head() + (rows.length ? renderRows(rows) : `<div class="row"><div class="k">No picks in this view.</div></div>`);
 }
 
 function renderArchive(history){
-  const cards = (history.weeks||[]).slice().reverse().map(w=>{
-    const key = `${w.season}-w${String(w.week).padStart(2,"0")}`;
-    return `
-      <div class="week">
-        <div class="h">
-          <strong>W${w.week} ${w.season}</strong>
-          <span class="badge">G ${w.record.green} • Y ${w.record.yellow} • R ${w.record.red}</span>
-        </div>
-        <div class="small"><a class="tag" href="./data/nfl/${key}.json">open JSON</a></div>
-        <button class="btn" data-goto="${key}">Load Week</button>
-      </div>
-    `;
+  el.arch.innerHTML = (history.weeks||[]).slice().reverse().map(w=>{
+    const key=`${w.season}-w${String(w.week).padStart(2,"0")}`;
+    return `<div class="weekCard">
+      <div class="top"><strong>W${w.week} ${w.season}</strong><span class="k">G ${w.record.green} • Y ${w.record.yellow} • R ${w.record.red}</span></div>
+      <div class="k small" style="margin-bottom:8px">Record card</div>
+      <div><a class="btn" href="./data/nfl/${key}.json">Open JSON</a>
+           <button class="btn ghost" data-load="${key}">Load Week</button></div>
+    </div>`;
   }).join("");
-  archEl.innerHTML = cards;
-  archEl.addEventListener("click", async (e)=>{
-    const btn = e.target.closest("button[data-goto]");
-    if(!btn) return;
-    const key = btn.getAttribute("data-goto");
-    const wk = await j(`./data/nfl/${key}.json`, null);
-    if(wk){ renderWeek(wk); selWeek.value = key; pushURL(); }
+
+  el.arch.addEventListener("click", async e=>{
+    const btn=e.target.closest("[data-load]"); if(!btn) return;
+    const key=btn.getAttribute("data-load"); const wk=await getJSON(`./data/nfl/${key}.json`,null);
+    if(wk){ current = wk; renderWeek(current); el.selWeek.value = key; }
   });
 }
 
-function pushURL(){
-  const key = selWeek.value; const [season, wk] = key.split("-w");
-  const params = new URLSearchParams({
-    week: wk, season, market: selMarket.value, color: selColor.value, sort: selSort.value, q: txtSearch.value
-  });
-  history.replaceState(null, "", `?${params.toString()}`);
+function fillWeekDropdown(hist, cur){
+  const keys = [...new Set((hist.weeks||[]).map(w=>`${w.season}-w${String(w.week).padStart(2,"0")}`))].sort().reverse();
+  el.selWeek.innerHTML = keys.map(k=>{
+    const [s,w]=k.split("-w"); const sel=(+s===cur.season && +w===cur.week)?"selected":"";
+    return `<option value="${k}" ${sel}>W${+w} ${s}</option>`;
+  }).join("");
+
+  el.selWeek.onchange = async ()=>{
+    const [season, wk] = el.selWeek.value.split("-w");
+    const wkJson = await getJSON(`./data/nfl/${season}-w${wk}.json`, null);
+    if(wkJson){ current = wkJson; renderWeek(current); }
+  };
 }
 
-function bindEvents(allWeeks, currentWeek){
-  const handle = () => { pushURL(); renderWeek(currentWeek); };
-  [selMarket, selColor, selSort].forEach(el => el.addEventListener("change", handle));
-  txtSearch.addEventListener("input", handle);
-  selWeek.addEventListener("change", async ()=>{
-    const [season, wk] = selWeek.value.split("-w"); 
-    const wkJson = await j(`./data/nfl/${season}-w${wk}.json`, null);
-    if(wkJson){ currentWeek.season = +season; currentWeek.week = +wk; currentWeek.games = wkJson.games; currentWeek.record = wkJson.record; currentWeek.updated = wkJson.updated; }
-    pushURL(); renderWeek(currentWeek);
-  });
-
-  btnClear.addEventListener("click", ()=>{
-    selMarket.value="all"; selColor.value="all"; selSort.value="edgeDesc"; txtSearch.value=""; pushURL(); renderWeek(currentWeek);
-  });
-  btnShare.addEventListener("click", ()=>{
-    navigator.clipboard?.writeText(location.href); btnShare.textContent="Copied!"; setTimeout(()=>btnShare.textContent="Share",1000);
-  });
-  btnExport.addEventListener("click", ()=>{
-    const rows = applyFilters(currentWeek.games||[]);
-    const blob = new Blob([toCSV(rows)], {type:"text/csv"});
-    const a = Object.assign(document.createElement("a"), {href:URL.createObjectURL(blob), download:`sportsedge-week${currentWeek.week}-${currentWeek.season}.csv`});
-    document.body.appendChild(a); a.click(); a.remove();
-  });
+function bind(){
+  [el.selMarket, el.selColor].forEach(x=> x.onchange = ()=> renderWeek(current));
+  el.txtSearch.oninput = ()=> renderWeek(current);
+  el.btnClear.onclick  = ()=>{ el.selMarket.value="all"; el.selColor.value="all"; el.txtSearch.value=""; renderWeek(current); };
+  el.btnShare.onclick  = ()=>{ navigator.clipboard?.writeText(location.href); el.btnShare.textContent="Copied!"; setTimeout(()=>el.btnShare.textContent="Share",900); };
+  el.btnExport.onclick = ()=>{
+    const rows = applyFilters(current.games||[]);
+    const head = ["home","away","market","line","model","edge","color","recommendation","kickoff"];
+    const esc  = (v)=>`"${String(v??"").replaceAll('"','""')}"`;
+    const csv  = [head.join(","), ...rows.map(r=>head.map(k=>esc(r[k])).join(","))].join("\r\n");
+    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+    a.download=`SportsEdge-W${current.week}-${current.season}.csv`; a.click();
+  };
 }
 
+let current = null;
 (async function init(){
-  const meta = await j(paths.meta, {});
-  if(meta?.message) metaEl.textContent = meta.message;
-
-  const current = await j(paths.current, null);
-  const historyJson = await j(paths.history, {weeks:[]});
-  if(!current){ weekEl.innerHTML = '<p class="small">No current.json found. Put one under ./data/nfl/current.json</p>'; return; }
-
-  renderControls(historyJson.weeks||[], {season: current.season, week: current.week});
+  const meta = await getJSON(paths.meta, {});
+  if(meta?.message) el.meta.textContent = meta.message;
+  const hist = await getJSON(paths.history, {weeks:[]});
+  current    = await getJSON(paths.current, null);
+  if(!current){ el.tbl.innerHTML='<div class="row"><div class="k">current.json missing. Put one under ./data/nfl/current.json</div></div>'; return; }
+  renderArchive(hist);
+  fillWeekDropdown(hist, current);
+  bind();
   renderWeek(current);
-  renderArchive(historyJson);
-  bindEvents(historyJson.weeks||[], current);
 })();

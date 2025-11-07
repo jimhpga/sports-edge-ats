@@ -1,87 +1,91 @@
 ﻿<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SportsEdge — Weekly NFL Edges</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SportsEdge — NFL Model Picks</title>
   <link rel="preload" as="fetch" href="./data/nfl/current.json" crossorigin>
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css?v=6"/>
 </head>
 <body>
   <header class="hero">
-    <img class="logo" src="./logo.svg" alt="SportsEdge" />
-    <div>
-      <h1>SportsEdge Weekly NFL Picks</h1>
-      <p class="sub">
-        Colors:
-        <span class="dot g"></span> Green •
-        <span class="dot y"></span> Yellow •
-        <span class="dot r"></span> Red
-      </p>
-      <p id="meta" class="small"></p>
+    <div class="brand">
+      <img class="logo" src="./logo.svg" alt="SportsEdge"/>
+      <div>
+        <h1>SportsEdge</h1>
+        <p class="muted">NFL Model Picks • internal demo</p>
+      </div>
+    </div>
+    <div class="legend">
+      <span class="chip g">Green</span>
+      <span class="chip y">Yellow</span>
+      <span class="chip r">Red</span>
     </div>
   </header>
 
-  <main class="container">
-    <section class="controls card">
-      <div class="row wrap">
-        <label>Week
+  <main class="wrap">
+    <section class="panel">
+      <div class="controls">
+        <div class="control">
+          <label>Week</label>
           <select id="selWeek"></select>
-        </label>
-
-        <label>Market
+        </div>
+        <div class="control">
+          <label>Market</label>
           <select id="selMarket">
             <option value="all">All</option>
             <option value="spread">Spread</option>
             <option value="total">Total</option>
             <option value="moneyline">Moneyline</option>
           </select>
-        </label>
-
-        <label>Confidence
+        </div>
+        <div class="control">
+          <label>Confidence</label>
           <select id="selColor">
             <option value="all">All</option>
             <option value="green">Green</option>
             <option value="yellow">Yellow</option>
             <option value="red">Red</option>
           </select>
-        </label>
-
-        <label>Sort
-          <select id="selSort">
-            <option value="edgeDesc">Edge ↓</option>
-            <option value="edgeAsc">Edge ↑</option>
-            <option value="kickoffAsc">Kickoff ↑</option>
-            <option value="kickoffDesc">Kickoff ↓</option>
-            <option value="alpha">A–Z</option>
-          </select>
-        </label>
-
-        <label class="grow">Search
-          <input id="txtSearch" type="text" placeholder="Team, note, pick…" />
-        </label>
-
+        </div>
+        <div class="control grow">
+          <label>Search</label>
+          <input id="txtSearch" type="text" placeholder="Team, pick, note…"/>
+        </div>
         <div class="actions">
-          <button id="btnShare" class="btn">Share</button>
           <button id="btnExport" class="btn">Export CSV</button>
-          <button id="btnClear" class="btn subtle">Clear</button>
+          <button id="btnShare"  class="btn ghost">Share</button>
+          <button id="btnClear"  class="btn ghost">Clear</button>
         </div>
       </div>
-      <div id="summary" class="small muted"></div>
+
+      <div class="meta-line">
+        <div id="headline" class="headline">This Week</div>
+        <div class="spacer"></div>
+        <div id="recordPills" class="pills"></div>
+        <div id="updated" class="muted small"></div>
+      </div>
+
+      <div id="table" class="card table">
+        <div class="loading">
+          <div class="shimmer"></div>
+          <div class="shimmer"></div>
+          <div class="shimmer"></div>
+        </div>
+      </div>
     </section>
 
-    <section>
-      <h2 id="titleWeek">This Week</h2>
-      <div id="thisWeek" class="card table"></div>
-    </section>
-
-    <section>
-      <h2>Archive (2024 → Now)</h2>
+    <section class="panel">
+      <h2>Archive</h2>
       <div id="archive" class="grid"></div>
     </section>
   </main>
 
-  <footer class="footer">© SportsEdge — entertainment/testing only</footer>
-  <script type="module" src="./app.js?v=4"></script>
+  <footer class="footer">
+    <span id="metaMsg" class="muted small"></span>
+    <span class="muted small"> • © SportsEdge (internal)</span>
+  </footer>
+
+  <script type="module" src="./app.js?v=6"></script>
 </body>
 </html>
