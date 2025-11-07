@@ -112,3 +112,4 @@ let current = null;
   bind();
   renderWeek(current);
 })();
+
