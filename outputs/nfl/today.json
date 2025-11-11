@@ -1,0 +1,6 @@
+﻿{
+  "sport": "nfl",
+  "items": [
+    { "game": "BUF@NYJ", "pick": "UNDER 40.5", "confidence": "GREEN" }
+  ]
+}
