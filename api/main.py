@@ -1,18 +1,19 @@
 # api/main.py
 from __future__ import annotations
 
+from pathlib import Path
+from typing import Literal
+import json
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Literal
-from pathlib import Path
-import json
 
 app = FastAPI(title="SportsEdge API", version="1.0.0")
 
-# Allow your site(s); keep * while wiring up, then restrict.
+# While wiring things up we allow all origins. Lock this down later to your domains.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],          # later: ["https://edge.virtualcoachai.net", "https://sportsedge.virtualcoachai.net"]
+    allow_origins=["*"],  # e.g., ["https://edge.virtualcoachai.net", "https://sportsedge.virtualcoachai.net"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,13 +31,18 @@ def health():
 
 
 def _load_json(path: Path) -> dict:
+    """
+    Read JSON from disk with tolerant decoding:
+      - use 'utf-8-sig' to ignore a UTF-8 BOM if present
+    """
     if not path.exists():
         raise HTTPException(status_code=404, detail=f"Not found: {path.name}")
     try:
-        # tolerate BOM if present
-        return json.loads(path.read_text(encoding="utf-8-sig"))
+        text = path.read_text(encoding="utf-8-sig")  # tolerate BOM
+        return json.loads(text)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Bad JSON in {path.name}: {e}") from e
+
 
 @app.get("/api/edge-data")
 def edge_data_today(sport: Sport = "nfl"):
