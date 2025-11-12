@@ -33,10 +33,10 @@ def _load_json(path: Path) -> dict:
     if not path.exists():
         raise HTTPException(status_code=404, detail=f"Not found: {path.name}")
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        # tolerate BOM if present
+        return json.loads(path.read_text(encoding="utf-8-sig"))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Bad JSON in {path.name}: {e}") from e
-
 
 @app.get("/api/edge-data")
 def edge_data_today(sport: Sport = "nfl"):
